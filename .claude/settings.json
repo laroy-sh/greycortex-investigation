@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__greycortex-mendel__list_incidents",
+      "mcp__greycortex-mendel__get_incident",
+      "mcp__greycortex-mendel__list_incident_comments",
+      "mcp__greycortex-mendel__list_incident_tags",
+      "mcp__greycortex-mendel__get_incident_filter_attributes",
+      "mcp__greycortex-mendel__list_detection_events",
+      "mcp__greycortex-mendel__get_event_filter_attributes",
+      "mcp__greycortex-mendel__list_new_events",
+      "mcp__greycortex-mendel__list_general_signatures",
+      "mcp__greycortex-mendel__list_ids_signatures",
+      "mcp__greycortex-mendel__list_unte_signatures",
+      "mcp__greycortex-mendel__list_em_signatures",
+      "mcp__greycortex-mendel__list_captures",
+      "mcp__greycortex-mendel__list_capture_pcaps",
+      "mcp__greycortex-mendel__list_extracted_files",
+      "mcp__greycortex-mendel__list_threat_domains",
+      "mcp__greycortex-mendel__list_threat_files",
+      "mcp__greycortex-mendel__list_threat_reputations",
+      "mcp__greycortex-mendel__list_false_positives",
+      "mcp__greycortex-mendel__list_event_categories",
+      "mcp__greycortex-mendel__list_subnets",
+      "mcp__greycortex-mendel__get_subnet",
+      "mcp__greycortex-mendel__list_hosts",
+      "mcp__greycortex-mendel__get_host",
+      "mcp__greycortex-mendel__list_policies",
+      "mcp__greycortex-mendel__get_policy",
+      "mcp__greycortex-mendel__list_network_services",
+      "mcp__greycortex-mendel__list_asns",
+      "mcp__greycortex-mendel__list_ip_protocols",
+      "mcp__greycortex-mendel__list_users",
+      "mcp__greycortex-mendel__list_groups",
+      "mcp__jina-ai__search_web"
+    ]
+  }
+}

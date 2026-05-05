@@ -1,0 +1,13 @@
+# Assessment output files — local only, may contain sensitive network data
+mendel-assessment-*.md
+
+# Environment files
+.env
+
+# Local Claude Code overrides
+.claude/settings.local.json
+
+# Python artifacts if any tooling is added
+__pycache__/
+*.pyc
+.venv/

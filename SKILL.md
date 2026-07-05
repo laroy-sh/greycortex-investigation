@@ -50,17 +50,12 @@ Run sub-steps 0a and 0b sequentially before doing anything else.
 
 ### Step 0a — Sensor enumeration
 
-Call `list_subnets` and paginate until exhausted (the ≤50 limit in
-Constraints applies to report-oriented queries, not enumeration):
+Call `list_sensors` — it auto-paginates the full subnet table server-side and
+returns the complete, deduped, sorted list of sensor names directly (no
+envelope, no client-side pagination or dedupe needed):
 
 ```
-list_subnets(limit=50)            # then offset=50, 100, ... while full pages return
-```
-
-Extract unique, non-null sensor names across all pages:
-
-```
-all_sensors = sorted({entry["sensor"] for entry in results if entry.get("sensor")})
+all_sensors = list_sensors()      # -> ["collector-1", "collector-2", ...]
 ```
 
 **If no sensors found:** Set `selected_sensors = []`. Omit the sensor
@@ -238,7 +233,7 @@ list_detection_events(
     ts_till=ts_till,
     filter=f"severity GTE {severity_threshold}",
     filter_order_by="SEVERITY desc",
-    limit=50,
+    limit=200,
 )
 ```
 
@@ -255,11 +250,11 @@ list_detection_events(
     event_type="OT",
     filter=f"severity GTE {severity_threshold}",
     filter_order_by="SEVERITY desc",
-    limit=50,
+    limit=200,
 )
 ```
 
-`event_type="OT"` auto-prepends `eventType EQ "OT"` to the filter string.
+`event_type="OT"` composes as `eventType EQ "OT" AND (<your filter>)`.
 
 ### 1d. Threat intelligence — hits in observed traffic
 
@@ -272,7 +267,7 @@ list_detection_events(
     ts_till=ts_till,
     filter=f"(srcHostReputation GT 0 OR dstHostReputation GT 0) AND severity GTE {severity_threshold}",
     filter_order_by="SEVERITY desc",
-    limit=50,
+    limit=200,
 )
 ```
 
@@ -305,6 +300,9 @@ report — only surface findings that warrant attention. Do not dump
 configuration data or report empty sections.
 
 All MCP tools are read-only. Do NOT create, update, or delete anything.
+Every list_* tool (list_detection_events, list_subnets, list_hosts) returns an
+envelope {"items": [...], "truncated": bool, "next_offset": int|None} — read
+rows from result["items"], not the bare result.
 NEVER call list_event_categories("MITRE") — this endpoint ignores pagination,
 returns all 398 MITRE categories, and causes an OOM crash.
 
@@ -321,8 +319,11 @@ interval buckets and reliably handles historical windows:
       ts_till="TS_TILL",
       filter='sensorName EQ "SENSOR"',
       filter_order_by="SEVERITY desc",
-      limit=50,
+      limit=200,
   )
+
+If result["truncated"] is true, note "results capped at limit" in your output
+so the orchestrator knows more events exist.
 
 Do NOT use list_new_events for historical assessment windows — it is a
 polling cursor endpoint and times out when started from a high-traffic
@@ -402,7 +403,7 @@ If no result: note "Not in Mendel host inventory."
       ts_till="TS_TILL",
       filter='srcHostMac EQ "XX:XX:XX:XX:XX:XX" OR dstHostMac EQ "XX:XX:XX:XX:XX:XX"',
       filter_order_by="SEVERITY desc",
-      limit=50,
+      limit=200,
   )
 
 If you have an IP from D1, extend the filter:
@@ -681,7 +682,7 @@ list_detection_events(
     ts_till=ts_till,
     filter='hostMac EQ "XX:XX:XX:XX:XX:XX"',
     filter_order_by="SEVERITY desc",
-    limit=50,
+    limit=200,
 )
 ```
 
@@ -721,9 +722,20 @@ where the host appeared (incident or detection event), with:
   event volume causes a server-side table scan that exceeds the 10-second
   read timeout, even when zero events are ultimately returned. Use
   `list_detection_events` with `filter='sensorName EQ "SENSOR"'` instead.
-- Keep `limit` at 50 or below for all report-oriented calls. Sensor-discovery
-  pagination in Step 0a may iterate past 50 total rows — that is the one
-  intended exception.
+- **Result envelope.** Every `list_*` tool returns
+  `{"items": [...], "truncated": bool, "next_offset": int|None}`, not a bare
+  list — read rows from `result["items"]`. When `result["truncated"]` is true,
+  report it explicitly in the assessment output (e.g. "results capped at limit —
+  more exist") instead of the old "50+ (query limit reached)" hedging.
+  (`list_sensors` is the exception — it returns a plain list of names.)
+- **Limits.** `list_detection_events` projects away icon/raw-blob fields by
+  default (payloads shrink ~60–80%), so use `limit` up to **200** for
+  detection-event calls to capture more of a busy window in one call. Keep other
+  report calls (`list_incidents`, `list_hosts`, `list_subnets`) at **≤50**.
+- **ONE_DAY buckets at day-start.** When `interval=ONE_DAY` (the >30-day window),
+  Mendel aligns event buckets to the start of each day, so a rolling window that
+  starts mid-day returns nothing. Align `ts_since`/`ts_till` to day boundaries
+  (`T00:00:00Z`) for ONE_DAY queries.
 - **No flow tools.** `list_network_flows`, `run_analysis_view`, and related
   endpoints are not available — flows are stored on individual sensors, not
   on the CEM.

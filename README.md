@@ -22,14 +22,9 @@ One invocation produces a `mendel-assessment-YYYYMMDD-HHMMSS.md` file covering:
 ## Installation
 
 ```bash
-claude skill install https://github.com/laroy-sh/greycortex-investigation
-```
-
-Or manually:
-
-```bash
+git clone https://github.com/laroy-sh/greycortex-investigation
 mkdir -p ~/.claude/skills/GreyCortex-investigation
-cp skill.md ~/.claude/skills/GreyCortex-investigation/SKILL.md
+cp greycortex-investigation/SKILL.md ~/.claude/skills/GreyCortex-investigation/SKILL.md
 ```
 
 ## Invocation
@@ -44,11 +39,12 @@ Or naturally:
 
 > "Run a security assessment" / "What's the security posture in Mendel?" / "Any threats in the last 7 days?"
 
-The skill prompts for:
-1. CEM target IP (defaults to `MENDEL_HOST`)
-2. Sensor scope (all or specific sensors)
-3. Minimum severity threshold (High ≥7, Critical ≥9, Medium ≥5, All)
-4. Time window (24h, 7 days, 30 days, or custom)
+The skill prompts once (a single combined dialog) for:
+1. Sensor scope (all or specific sensors)
+2. Minimum severity threshold (High ≥7, Critical ≥9, Medium ≥5, All)
+3. Time window (24h, 7 days, 30 days, or a custom range)
+
+The CEM target is whatever `MENDEL_HOST` the MCP server is configured with — repoint the server's environment to assess a different CEM.
 
 ## Output
 

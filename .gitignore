@@ -1,8 +1,10 @@
 # Assessment output files — local only, may contain sensitive network data
 mendel-assessment-*.md
 
-# Environment files
+# Environment files — credentials, never commit
 .env
+.env.*
+.mcp.json
 
 # Local Claude Code overrides
 .claude/settings.local.json
